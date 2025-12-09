@@ -1,6 +1,6 @@
 // Tab Leap content script
 
-document.addEventListener('click', (event) => {
+function handleLinkClick(event) {
   const target = event.target.closest('a');
 
   if (!target || !target.href) {
@@ -18,9 +18,18 @@ document.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
 
-    chrome.runtime.sendMessage({
-      type: 'openTab',
-      url: target.href
-    });
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage({
+        type: 'openTab',
+        url: target.href
+      });
+    } else {
+      // Fallback: open normally if chrome API is not available
+      window.open(target.href, '_blank');
+    }
   }
-}, true);
+}
+
+// Listen for both click and auxclick events
+document.addEventListener('click', handleLinkClick, true);
+document.addEventListener('auxclick', handleLinkClick, true);
